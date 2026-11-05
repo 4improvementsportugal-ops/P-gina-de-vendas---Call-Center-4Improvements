@@ -279,6 +279,23 @@ h1,h2,h3{font-family:"Oswald","Arial Narrow",sans-serif;font-weight:500!importan
 @media (max-width:580px){.solution-intro{margin-bottom:36px}.solution-copy h2{font-size:clamp(34px,9vw,48px)}.solution-copy p,.solution-side p{font-size:14px}.solution-side{padding-left:20px}}
 
 </style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1190659816630727');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1190659816630727&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
 <svg aria-hidden="true" style="width:0;height:0;position:absolute;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
@@ -371,7 +388,7 @@ h1,h2,h3{font-family:"Oswald","Arial Narrow",sans-serif;font-weight:500!importan
 
 // Coloque aqui o URL completo do webhook de entrada (p.ex. de um workflow do GoHighLevel).
 // NÃO use o URL de agendamento: é uma página de marcação, não um endpoint de recolha.
-const LEAD_WEBHOOK_URL = "";
+const LEAD_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/lwdT8imgib43lDC9X1SC/webhook-trigger/C0BS71nfc2g8rkOjZaoT";
 const BOOKING_URL = "https://api.leadconnectorhq.com/widget/booking/H5vPg7VYHLOraN6VSC6k";
 const utm = new URLSearchParams(window.location.search);
 const feedback = (form, message, good=false) => {
@@ -394,10 +411,19 @@ document.querySelectorAll('[data-lead-form]').forEach(form=>{
    feedback(form,'Este formulário ainda não está ligado ao CRM. Para entrar em contacto, utilize a marcação:');return;
   }
   const send=form.querySelector('button[type="submit"]');
+  const fullName=form.elements.namedItem('name').value.trim().replace(/\s+/g,' ');
+  const nameParts=fullName.split(' ');
+  const phoneRaw=form.elements.namedItem('phone').value.trim();
+  let phoneDigits=phoneRaw.replace(/\D/g,'');
+  if(phoneDigits.startsWith('00'))phoneDigits=phoneDigits.slice(2);
+  if(phoneDigits.length===9)phoneDigits='351'+phoneDigits;
   const payload={
-   name:form.elements.namedItem('name').value.trim(),
+   name:fullName,
+   first_name:nameParts[0]||'',
+   last_name:nameParts.slice(1).join(' '),
    email:form.elements.namedItem('email').value.trim(),
-   phone:form.elements.namedItem('phone').value.trim(),
+   phone:phoneDigits,
+   phone_raw:phoneRaw,
    profile:form.elements.namedItem('profile').value,
    consent:true,
    product:'Call Center com IA — Imobiliário',
@@ -406,12 +432,13 @@ document.querySelectorAll('[data-lead-form]').forEach(form=>{
    page_url:window.location.href,
    submitted_at:new Date().toISOString(),
    utm_source:utm.get('utm_source')||'',utm_medium:utm.get('utm_medium')||'',
-   utm_campaign:utm.get('utm_campaign')||'',utm_content:utm.get('utm_content')||''
+   utm_campaign:utm.get('utm_campaign')||'',utm_content:utm.get('utm_content')||'',utm_term:utm.get('utm_term')||''
   };
   try{
    send.disabled=true;send.textContent='A enviar…';
    const response=await fetch(LEAD_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
    if(!response.ok)throw new Error('status '+response.status);
+   if(typeof fbq==='function')fbq('track','Lead');
    form.reset();feedback(form,'Pedido enviado. Obrigado! Entraremos em contacto consigo.',true);
   }catch(err){
    console.error('Erro ao enviar o pedido:',err);
