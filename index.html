@@ -421,10 +421,10 @@ document.querySelectorAll('[data-lead-form]').forEach(form=>{
    return;
   }
   const send=form.querySelector('button[type="submit"]');
-  const fullName=form.elements.namedItem('name').value.trim().replace(/s+/g,' ');
+  const fullName=form.elements.namedItem('name').value.trim().replace(/\s+/g,' ');
   const nameParts=fullName.split(' ');
   const phoneRaw=form.elements.namedItem('phone').value.trim();
-  let phoneDigits=phoneRaw.replace(/D/g,'');
+  let phoneDigits=phoneRaw.replace(/\D/g,'');
   if(phoneDigits.startsWith('00'))phoneDigits=phoneDigits.slice(2);
   if(phoneDigits.length===9)phoneDigits='351'+phoneDigits;
   const payload={
