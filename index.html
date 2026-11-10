@@ -389,6 +389,12 @@ src="https://www.facebook.com/tr?id=1190659816630727&ev=PageView&noscript=1"
 // NÃO use o URL de agendamento: é uma página de marcação, não um endpoint de recolha.
 const LEAD_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/lwdT8imgib43lDC9X1SC/webhook-trigger/C0BS71nfc2g8rkOjZaoT";
 const BOOKING_URL = "https://api.leadconnectorhq.com/widget/booking/H5vPg7VYHLOraN6VSC6k";
+// Cópia de segurança de cada lead para a folha «Leads LP 4Improvements» (Apps Script). Independente do GHL.
+const LEADS_SHEET_URL = 'https://script.google.com/macros/s/AKfycbz6St63xXdWNPAkrk8BWf6qBnjmi2Y_JiIbFNSfU5YoG9wmHtM6h5ESmJI8oNREttXn/exec';
+function sendToSheet(payload){
+  if(!LEADS_SHEET_URL)return;
+  try{fetch(LEADS_SHEET_URL,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).catch(()=>{});}catch(e){}
+}
 const utm = new URLSearchParams(window.location.search);
 const feedback = (form, message, good=false) => {
  const node=form.querySelector('.lead-msg');
@@ -446,6 +452,7 @@ document.querySelectorAll('[data-lead-form]').forEach(form=>{
   };
   try{
    send.disabled=true;send.textContent='A enviar…';
+   sendToSheet(payload);
    const response=await fetch(LEAD_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
    if(!response.ok)throw new Error('status '+response.status);
    if(typeof fbq==='function')fbq('track','Lead');
